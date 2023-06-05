@@ -11,13 +11,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 API_KEY = os.getenv("WEATHER_SERVICE_KEY")
 
 def get_weather(lat, long):
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={long}&appid={API_KEY}&units=metric"
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={long}&lang=kr&appid={API_KEY}&units=metric"
     response = requests.get(url)
     data = response.json()
     city = data['name']
     weather = data['weather'][0]['main']
     temp = data['main']['temp']
-    print(data)
 
     return city, weather, temp
 
@@ -30,7 +29,7 @@ def get_location():
 
 def chat_with_gpt(input_text, city, weather, temp):
     messages = [
-        {"role": "system", "content": "오늘 기온에 맞춰 오늘 작물에게 맞는 행동을 추천해야 합니다. 사용자가 특정 작물과 현재 기온에 대한 정보를 제공하면, 해당 기온에서의 작물 관리에 대한 오늘 하루 관리법을 제공해야 합니다. 답변은 다음과 같은 형식을 따라야 합니다: '{temp}도에서는 {input}에게 ~~ 한 온도입니다. 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'"  },
+        {"role": "system", "content": "오늘 기온에 맞춰 오늘 작물에게 맞는 행동을 추천해야 합니다. 사용자가 특정 작물과 현재 기온에 대한 정보를 제공하면, 해당 기온에서의 작물 관리에 대한 오늘 하루 관리법을 제공해야 합니다."},
         {"role": "assistant", "content": f'오늘 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 오늘같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. 오늘 하루 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
         {"role": "assistant", "content": f'오늘 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 오늘같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. 오늘 하루 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
         {"role": "assistant", "content": f'오늘 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 오늘같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. 오늘 하루 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
@@ -58,9 +57,9 @@ def handle_chat(input_text):
 
 iface = gr.Interface(
     fn=handle_chat, 
-    inputs="text",
-    outputs="text", 
-    title="AgriChat",
+    inputs=gr.inputs.Textbox(label="작물 이름을 입력하세요"),
+    outputs=gr.outputs.Textbox(label="답변"), 
+    title="오늘의 관리법",
 )
 
 iface.launch()
