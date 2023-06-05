@@ -4,6 +4,7 @@ import os # 환경변수를 읽기위한 os 라이브러리
 import geocoder # 위도 경도 정보를 받아오기 위한 라이브러리
 import requests # api에게 요청을 보내기 위한 requests 라이브러리
 from dotenv import load_dotenv # 디렉토리 내 .env 파일을 불러오기 위한 라이브러리
+from datetime import datetime
 
 load_dotenv() # .env 파일 불러오기
 
@@ -30,19 +31,17 @@ def get_weather(lat, long): # 인자로 위도, 경도를 받습니다.
     return city, weather, temp # 저장한 값들을 튜플 형식으로 return.
 
 # LLM 적용 함수
-def chat_with_gpt(input_text, city, weather, temp):
+def chat_with_gpt(input_text, city, weather, temp, now):
     # LLM 에게 역할 부여, 답변 양식 학습, 사용자의 질문을 딕서녀리 형태의 prompt로 학습시킵니다.
     messages = [
         # LLM 에게 역할을 부여하는 system role.
         {"role": "system", "content": "오늘 기온에 맞춰 오늘 작물에게 맞는 행동을 추천해야 합니다. 사용자가 특정 작물과 현재 기온에 대한 정보를 제공하면, 해당 기온에서의 작물 관리에 대한 오늘 하루 관리법을 제공해야 합니다."},
         # LLM 의 답변 형식을 학습시키는 assistant role.
-        {"role": "assistant", "content": f'오늘 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 오늘같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. 오늘 하루 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
-        {"role": "assistant", "content": f'오늘 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 오늘같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. 오늘 하루 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
-        {"role": "assistant", "content": f'오늘 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 오늘같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. 오늘 하루 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
-        {"role": "assistant", "content": f'오늘 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 오늘같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. 오늘 하루 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
-        {"role": "assistant", "content": f'오늘 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 오늘같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. 오늘 하루 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
+        {"role": "assistant", "content": f'{now}일때 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 지금같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. {input_text}를 위해 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
+        {"role": "assistant", "content": f'{now}일때 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 지금같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. {input_text}를 위해 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
+        {"role": "assistant", "content": f'{now}일때 {city}의 날씨는 {weather}하며 가온은 {temp}도입니다. 지금같은 날씨는 {input_text}에게 ~~ 한 날씨입니다. {input_text}를 위해 다음과 같이 행동하는 것을 추천합니다: 1. ~~ 2. ~~ 3. ~~'},
         # user 의 답변을 LLM 에게 부여하는 딕셔너리 형태의 질문.
-        {"role": "user", "content": f'나는 {input_text} 를 기르고 있어. 여기는 {city}이고, 날씨는 {weather}하며, 기온은 섭씨{temp}도야 오늘 하루 {input_text}가 잘 자라게 하는 방법에는 무엇이 있을까?'}
+        {"role": "user", "content": f'나는 {input_text} 를 기르고 있어. 현재 시각은 {now}이고, 여기는 {city}이고, 날씨는 {weather}하며, 기온은 섭씨{temp}도야 오늘 하루 {input_text}가 잘 자라게 하는 방법에는 무엇이 있을까?'}
     ]
 
     # LLM 을 생성하는 함수.
@@ -61,7 +60,8 @@ def chat_with_gpt(input_text, city, weather, temp):
 def handle_chat(input_text):
     lat, lon = get_location()  # 사용자의 위도와 경도를 얻습니다.
     city, weather, temp = get_weather(lat, lon)  # 사용자의 현재 위치, 오늘 날씨, 기온 정보를 위도 경도를 통해 얻습니다.
-    assistant_reply = chat_with_gpt(input_text, city, weather, temp)  # GPT와 대화를 합니다.
+    now = datetime.now()
+    assistant_reply = chat_with_gpt(input_text, city, weather, temp, now)  # GPT와 대화를 합니다.
 
     return assistant_reply # 답변을 return 합니다.
 
